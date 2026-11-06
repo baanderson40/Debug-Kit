@@ -1,0 +1,18 @@
+<Project Sdk="Dalamud.NET.Sdk/15.0.0">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Use_Dalamud_FFXIVClientStructs>true</Use_Dalamud_FFXIVClientStructs>
+    <Use_Dalamud_Newtonsoft_Json>false</Use_Dalamud_Newtonsoft_Json>
+    <Use_Dalamud_Serilog>false</Use_Dalamud_Serilog>
+    <Use_Dalamud_MSObjectPool>false</Use_Dalamud_MSObjectPool>
+    <Description>Standalone read-only game diagnostics.</Description>
+    <Authors>Debug Kit contributors</Authors>
+    <PackageProjectUrl></PackageProjectUrl>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../DebugKit.Core/DebugKit.Core.csproj" />
+    <None Include="DebugKit.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

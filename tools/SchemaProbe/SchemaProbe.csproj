@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../DebugKit.Core/DebugKit.Core.csproj" />
+    <Compile Include="../../DebugKit/Readers/XbmPetCurrentRow.cs" Link="XbmPetCurrentRow.cs" />
+    <Compile Include="../../DebugKit/Readers/SheetReadFailures.cs" Link="SheetReadFailures.cs" />
+    <Reference Include="Lumina.Excel" HintPath="$(AppData)/XIVLauncher/addon/Hooks/dev/Lumina.Excel.dll" />
+    <Reference Include="Lumina" HintPath="$(AppData)/XIVLauncher/addon/Hooks/dev/Lumina.dll" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <JsonSerializerIsReflectionEnabledByDefault>false</JsonSerializerIsReflectionEnabledByDefault>
+    <DalamudLibPath Condition="'$(DalamudLibPath)' == '' and '$(DALAMUD_HOME)' != ''">$(DALAMUD_HOME)</DalamudLibPath>
+    <DalamudLibPath Condition="'$(DalamudLibPath)' == ''">$(AppData)\XIVLauncher\addon\Hooks\dev</DalamudLibPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../DebugKit.Core/DebugKit.Core.csproj" />
+    <Reference Include="Lumina" HintPath="$(DalamudLibPath)/Lumina.dll" />
+    <Compile Include="../DebugKit/Readers/MenuLabelDecoder.cs" Link="MenuLabelDecoder.cs" />
+    <Compile Include="../DebugKit/Readers/XbmPetCurrentRow.cs" Link="XbmPetCurrentRow.cs" />
+    <Compile Include="../DebugKit/Readers/SheetReadFailures.cs" Link="SheetReadFailures.cs" />
+  </ItemGroup>
+</Project>

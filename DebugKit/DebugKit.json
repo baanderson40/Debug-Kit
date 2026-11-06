@@ -1,0 +1,11 @@
+{
+  "Author": "Debug Kit contributors",
+  "Name": "Debug Kit",
+  "InternalName": "DebugKit",
+  "AssemblyVersion": "0.5.3.0",
+  "Description": "Standalone game/domain inspectors, optional provider queries, explicit network summaries and opt-in bounded addon callback observation. No callback replay, provider controls, uploads or automatic requests. Experimental native features remain exact-profile gated. No companion plugins required.",
+  "Punchline": "Read-only game inspection and diagnostic snapshots.",
+  "ApplicableVersion": "any",
+  "DalamudApiLevel": 15,
+  "Tags": ["debug", "diagnostics", "inspection"]
+}
