@@ -5,3 +5,6 @@
 *.suo
 reports/
 AGENTS.md
+.DS_Store
+Thumbs.db
+.idea/
