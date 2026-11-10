@@ -131,6 +131,11 @@ public static class ReportCodec
                 text.AppendLine($"Target: {r.Name ?? "unavailable"} | {r.Kind} | {r.RawKindLabel} ({r.RawKindValue}) | base ID {Number(r.BaseId)}");
                 text.AppendLine($"Position {FormatPoint(r.Position)} | distance {(r.Distance is { } distance ? distance.ToString("F2", CultureInfo.InvariantCulture) + "y" : "unavailable")} | targetable {r.Targetable}");
                 text.AppendLine($"Rotation {OptionalNumber(p.Target.Rotation)} | hitbox {OptionalNumber(p.Target.HitboxRadius)} | HP {Number(p.Target.Hp)}/{Number(p.Target.MaxHp)} | job {Number(p.Target.JobId)} | level {OptionalNumber(p.Target.Level)}");
+                text.AppendLine($"Statuses: {p.Target.StatusAvailability} | count {OptionalNumber(p.Target.StatusCount)} | source object IDs withheld{(p.Target.StatusesTruncated ? " | truncated to 80" : "")}");
+                foreach (var status in p.Target.Statuses.IsDefault ? ImmutableArray<TargetStatusData>.Empty : p.Target.Statuses)
+                    text.AppendLine(status.ReadFailed
+                        ? "  status read failed"
+                        : $"  status {OptionalNumber(status.StatusId)} | {status.Name ?? "name unavailable"} | remaining {OptionalNumber(status.RemainingTime)}s");
                 text.AppendLine("Selected-target observation only; no target changes and no claim of entity continuity across snapshots.");
                 break;
             case AddonsPayload p:

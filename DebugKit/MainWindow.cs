@@ -446,6 +446,8 @@ internal sealed class MainWindow : Window, IDisposable
             ImGui.TextWrapped("Current installed SDK ConditionFlag names/values. Snapshot only; no chat messages or automated change tracking.");
         if (selected == Inspector.PlayerStatuses)
             ImGui.TextWrapped("Status-list fields are reported only when supported by installed SDK. Source object IDs are withheld.");
+        if (selected == Inspector.Target)
+            ImGui.TextWrapped("Target statuses include ID, localized name, and reported remaining time (up to 80). Empty, unsupported, and failed reads are distinguished; source object IDs are excluded.");
         if (selected == Inspector.InstalledPlugins)
             ImGui.TextWrapped("Public internal name, load state, and sanitized version only. No IPC calls/configuration reads. Copy/export reveals installed plugin inventory.");
         if (selected is Inspector.MovementSpeedTracker or Inspector.TargetDistanceTracker or Inspector.EntityNameWatch)

@@ -84,6 +84,9 @@ public static class SnapshotComparer
                 yield return Field("Position", p.Target.Object.Position); yield return Field("Targetable", p.Target.Object.Targetable);
                 yield return Field("Job", p.Target.JobId); yield return Field("Level", p.Target.Level);
                 yield return Field("Rotation", p.Target.Rotation); yield return Field("Hitbox", p.Target.HitboxRadius);
+                yield return Field("Statuses", p.Target.StatusAvailability);
+                foreach (var status in p.Target.Statuses.IsDefault ? [] : p.Target.Statuses)
+                    yield return Field($"Status {status.StatusId}", $"{status.Name}; remaining={status.RemainingTime}; failed={status.ReadFailed}");
                 break;
             case SheetPayload p:
                 foreach (var f in p.Fields) yield return Field(f.Field, f.Value); break;

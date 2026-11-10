@@ -48,7 +48,7 @@ public static class Catalog
             "Read login, territory, readiness, position, job/level, and selected conditions. No identifiers or names.", false, true),
         new(Inspector.NearbyObjects, "objects.nearby", 3, "Nearby Objects", "Objects",
             "Bounded object-table scan with in-game display names, including players and companions. Object IDs, owner IDs, and addresses are omitted. Multi-step captures are non-atomic.", true, true),
-        new(Inspector.Target, "objects.target", 1, "Selected Target", "Objects", "Read the selected target; never selects or changes a target. Names are included.", false, false),
+        new(Inspector.Target, "objects.target", 2, "Selected Target", "Objects", "Read selected target fields and bounded status IDs, localized names, and reported remaining time; source IDs excluded. Never selects or changes a target.", false, false),
         new(Inspector.AddonList, "addons.list", 1, "Addon List", "Addons & UI", "Bounded loaded/visible/focused addon metadata. Exact native compatibility and enabled session authorization required.", false, false),
         new(Inspector.AddonValues, "addons.values", 1, "Addon Values", "Addons & UI", "Inspect value types and reviewed scalar fields. Unclassified numeric/string/pointer values are omitted, not dereferenced.", false, false),
         new(Inspector.AddonNodes, "addons.nodes", 1, "Addon Nodes", "Addons & UI", "Bounded root ULD node-list geometry with depth/cycle checks. Component internals and arbitrary node text are not decoded.", false, false),

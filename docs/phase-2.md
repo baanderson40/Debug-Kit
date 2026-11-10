@@ -30,7 +30,7 @@ Native source uses only the installed FFXIVClientStructs contract. No unmanaged 
 
 ### Selected Target
 
-Captures name, broad/native kind, permitted base ID, position/distance, targetability, finite rotation/hitbox and supported character HP/job/level. Unsupported numeric fields display `unavailable`, never empty interpolations; genuine zero values remain zero. No target, loading, invalid position and missing player-distance origin have explicit unavailable representations. Raw identity/owner IDs and addresses remain excluded. Display names are included as requested.
+Captures name, broad/native kind, permitted base ID, position/distance, targetability, finite rotation/hitbox and supported character HP/job/level. Battle-character targets also capture up to 80 status IDs, localized names, and reported remaining times; source-object IDs are excluded. Status availability distinguishes empty lists, unsupported target types, and failed reads. Per-entry read failures, truncation, and partial output remain explicit. Unsupported numeric fields display `unavailable`, never empty interpolations; genuine zero values remain zero. No target, loading, invalid position and missing player-distance origin have explicit unavailable representations. Raw identity/owner IDs and addresses remain excluded. Display names are included as requested.
 
 ### Addon List
 

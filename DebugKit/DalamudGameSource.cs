@@ -162,9 +162,55 @@ internal sealed class DalamudGameSource(IFramework framework, IClientState clien
         var row = new ObjectRow(kind, kind is ObjectCategory.Player or ObjectCategory.Other ? null : target.BaseId,
             position, distance, target.IsTargetable, (byte)nativeKind, NativeKinds.Label(Enum.GetName(nativeKind)), ReadDisplayName(target, kind));
         var character = target as ICharacter;
+        var (statusAvailability, statuses, statusCount, statusesTruncated, statusReadFailed) = ReadTargetStatuses(target);
         var targetData = new TargetData(row, float.IsFinite(target.Rotation) ? target.Rotation : null,
             float.IsFinite(target.HitboxRadius) ? target.HitboxRadius : null, character?.CurrentHp, character?.MaxHp,
-            character?.ClassJob.RowId, character?.Level);
-        return new(new TargetPayload(targetData), Examined: 1, Matched: 1);
+            character?.ClassJob.RowId, character?.Level, statusAvailability, statuses, statusCount, statusesTruncated);
+        return new(new TargetPayload(targetData), Partial: statusReadFailed || statusesTruncated,
+            Reason: statusReadFailed ? Reason.ObjectReadFailed : statusesTruncated ? Reason.RowLimit : Reason.None,
+            Examined: 1, Matched: 1);
+    }
+
+    private static (TargetStatusAvailability Availability, System.Collections.Immutable.ImmutableArray<TargetStatusData> Statuses,
+        int? Count, bool Truncated, bool ReadFailed) ReadTargetStatuses(IGameObject target)
+    {
+        if (target is not IBattleChara battle)
+            return (TargetStatusAvailability.Unsupported, [], null, false, false);
+
+        try
+        {
+            var list = battle.StatusList;
+            var count = list.Length;
+            if (count == 0) return (TargetStatusAvailability.Empty, [], 0, false, false);
+            var rows = System.Collections.Immutable.ImmutableArray.CreateBuilder<TargetStatusData>(Math.Min(count, 80));
+            var failed = false;
+            for (var i = 0; i < Math.Min(count, 80); i++)
+            {
+                try
+                {
+                    var status = list[i];
+                    if (status == null)
+                    {
+                        rows.Add(new(null, null, null, true));
+                        failed = true;
+                        continue;
+                    }
+                    var data = status.GameData.Value;
+                    var remaining = status.RemainingTime;
+                    rows.Add(new(status.StatusId, data.Name.ExtractText(), float.IsFinite(remaining) ? remaining : null));
+                }
+                catch (Exception)
+                {
+                    rows.Add(new(null, null, null, true));
+                    failed = true;
+                }
+            }
+            return (failed ? TargetStatusAvailability.Failed : TargetStatusAvailability.Available,
+                rows.ToImmutable(), count, count > 80, failed);
+        }
+        catch (Exception)
+        {
+            return (TargetStatusAvailability.Failed, [], null, false, true);
+        }
     }
 }

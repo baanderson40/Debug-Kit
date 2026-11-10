@@ -63,7 +63,8 @@ internal static class Phase2Tests
     private static FieldRow F(string key, string value) => new(key, value);
     private static SheetPayload Sheet(params FieldRow[] fields) => new(SheetKind.Item, 1, "English", fields.ToImmutableArray(), NativeCompatibility.GameBuild);
     private static AddonRow Addon(string name = "Inventory") => new(name, 1, true, true, 10, 20);
-    private static TargetPayload TargetData() => new(new(new(ObjectCategory.Player, null, new(1, 2, 3), null, true, 1, NativeKindLabel.Pc, "Example Player"), 1, 2, 100, 200, 19, 100));
+    private static TargetPayload TargetData() => new(new(new(ObjectCategory.Player, null, new(1, 2, 3), null, true, 1, NativeKindLabel.Pc, "Example Player"), 1, 2, 100, 200, 19, 100,
+        TargetStatusAvailability.Available, [new(123, "Localized status", 12.5f)], 1));
     private static CaptureResult Capture(Inspector inspector, ToolPayload? payload, ToolOptions? options = null, Outcome outcome = Outcome.Success, Reason reason = Reason.None)
     {
         var source = new ToolSource { Read = (_, _, _, _) => new(payload, Outcome: outcome, Reason: reason) };
@@ -85,7 +86,8 @@ internal static class Phase2Tests
     {
         Equal(39, Catalog.All.Select(d => d.Id).Distinct().Count());
         foreach (var descriptor in Catalog.All.Reverse()) Equal(descriptor, Catalog.Get(descriptor.Inspector));
-        Equal("objects.target", Catalog.Get(Inspector.Target).Id); Equal("results.compare", Catalog.Get(Inspector.Compare).Id);
+        Equal("objects.target", Catalog.Get(Inspector.Target).Id); Equal(2, Catalog.Get(Inspector.Target).Version);
+        Equal("results.compare", Catalog.Get(Inspector.Compare).Id);
     }
     private static void SelectionLabels()
     {
@@ -244,7 +246,7 @@ internal static class Phase2Tests
         var result = Capture(Inspector.Target, TargetData());
         Check(result.Payload is TargetPayload); Equal(Outcome.Success, result.Outcome); Equal(1, result.Steps);
         var text = ReportCodec.Describe(result, result.Generation);
-        Check(text.Contains("Example Player") && text.Contains("distance unavailable") && !text.Contains("empty 0"));
+        Check(text.Contains("Example Player") && text.Contains("distance unavailable") && text.Contains("Localized status") && text.Contains("remaining 12.5s") && !text.Contains("empty 0"));
     }
     private static void NoTarget()
     {
@@ -379,6 +381,18 @@ internal static class Phase2Tests
         var result = Capture(Inspector.Target, target); var clean = ((TargetPayload)result.Payload!).Target;
         Check(clean.Rotation == null && clean.Object.Distance == null && clean.Object.BaseId == null);
         Equal(128, clean.Object.Name!.Length);
+        Equal(TargetStatusAvailability.Available, clean.StatusAvailability);
+        Equal(123u, clean.Statuses[0].StatusId);
+        Equal(12.5f, clean.Statuses[0].RemainingTime);
+        var bad = (TargetPayload)Payloads.Sanitize(target with { Target = target.Target with
+        {
+            StatusAvailability = (TargetStatusAvailability)999,
+            Statuses = Enumerable.Range(0, 100).Select(i => new TargetStatusData((uint)i, new string('x', 300), float.NaN)).ToImmutableArray(),
+            StatusCount = 100,
+        } })!;
+        Equal(TargetStatusAvailability.Failed, bad.Target.StatusAvailability);
+        Equal(80, bad.Target.Statuses.Length);
+        Check(bad.Target.StatusesTruncated && bad.Target.Statuses.All(s => s.RemainingTime == null && s.Name!.Length <= 128));
     }
     private static void NativeProfile()
     {

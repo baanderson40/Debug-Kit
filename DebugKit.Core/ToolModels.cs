@@ -84,7 +84,11 @@ public sealed record ToolOptions(AddonScope Scope = AddonScope.Loaded, string Ad
     private static bool ValidAddonFilter(string? text) => text is { Length: <= 64 } && (text.Length == 0 || ValidAddon(text));
 }
 
-public sealed record TargetData(ObjectRow Object, float? Rotation, float? HitboxRadius, uint? Hp, uint? MaxHp, uint? JobId, int? Level);
+public enum TargetStatusAvailability { Available, Empty, Unsupported, Failed }
+public sealed record TargetStatusData(uint? StatusId, string? Name, float? RemainingTime, bool ReadFailed = false);
+public sealed record TargetData(ObjectRow Object, float? Rotation, float? HitboxRadius, uint? Hp, uint? MaxHp, uint? JobId, int? Level,
+    TargetStatusAvailability StatusAvailability = TargetStatusAvailability.Unsupported,
+    ImmutableArray<TargetStatusData> Statuses = default, int? StatusCount = null, bool StatusesTruncated = false);
 public sealed record AddonRow(string Name, ushort AddonId, bool Visible, bool Ready, int? Values, int? Nodes);
 public sealed record ValueRow(int Index, string Type, string Value, bool Decoded);
 public sealed record NodeRow(int ListIndex, uint NodeId, ushort Type, int Depth, bool Visible, float X, float Y, ushort Width, ushort Height, bool DepthLimited);
@@ -167,6 +171,15 @@ public static class Payloads
             },
             Rotation = p.Target.Rotation is { } r && float.IsFinite(r) ? r : null,
             HitboxRadius = p.Target.HitboxRadius is { } h && float.IsFinite(h) && h >= 0 ? h : null,
+            StatusAvailability = Enum.IsDefined(p.Target.StatusAvailability) ? p.Target.StatusAvailability : TargetStatusAvailability.Failed,
+            Statuses = (p.Target.Statuses.IsDefault ? ImmutableArray<TargetStatusData>.Empty : p.Target.Statuses)
+                .Take(80).Select(s => s with
+                {
+                    Name = s.Name == null ? null : ObjectNames.For(ObjectCategory.EventNpc, s.Name),
+                    RemainingTime = s.RemainingTime is { } time && float.IsFinite(time) ? time : null,
+                }).ToImmutableArray(),
+            StatusCount = p.Target.StatusCount is >= 0 and <= 10000 ? p.Target.StatusCount : null,
+            StatusesTruncated = p.Target.StatusesTruncated || (p.Target.StatusCount is { } count && count > 80),
         } },
         AddonsPayload p => p with { Rows = p.Rows.Take(256).Select(r => r with { Name = ReportText.Clean(r.Name) }).ToImmutableArray(), GameBuild = NativeCompatibility.SafeBuild(p.GameBuild), Profile = p.Profile == "ExperimentalMatched" ? p.Profile : "Unsupported" },
         ValuesPayload p => p with { Rows = p.Rows.Take(128).Select(r => r with { Type = ReportText.Clean(r.Type), Value = ReportText.Clean(r.Value) }).ToImmutableArray(), Addon = ReportText.Clean(p.Addon), GameBuild = NativeCompatibility.SafeBuild(p.GameBuild) },

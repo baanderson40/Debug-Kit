@@ -43,7 +43,7 @@ Reports go only to Debug Kit's Dalamud configuration directory under `reports/`.
 
 | Tool | Inputs / behavior |
 | --- | --- |
-| Selected Target | Current selected object, name/kind/base ID, position/distance, targetability, rotation/hitbox, supported HP/job/level. Unsupported numbers display `unavailable`; legitimate zero values remain zero. No target is `NoTarget`, not an empty success. |
+| Selected Target | Current selected object, name/kind/base ID, position/distance, targetability, rotation/hitbox, supported HP/job/level, and up to 80 status IDs/localized names/reported remaining times. Status reads distinguish empty, unsupported, and failed; source-object IDs excluded. No target is `NoTarget`, not an empty success. |
 | Addon List | Loaded/visible/focused scope, optional addon-name filter. Up to 256 rows, 32 examined entries/step. Native addon ID is not the `GetAddonByName` instance index. Structured-row shortcuts navigate to Values/Nodes but do not capture. |
 | Addon Values | Addon name, instance index, start/count up to 128 values. Types reported; booleans and reviewed ContextMenu count decoded. **Unclassified numbers/strings/pointers are deliberately omitted**, not blindly dumped. |
 | Addon Nodes | Addon/instance, optional node ID, parent depth 1–8. One bounded step, max 256 root ULD list entries, cycle/depth/allocation checks. Component internals/arbitrary node text omitted. Partial output is explicit. |
