@@ -90,7 +90,7 @@ public sealed record TargetData(ObjectRow Object, float? Rotation, float? Hitbox
     TargetStatusAvailability StatusAvailability = TargetStatusAvailability.Unsupported,
     ImmutableArray<TargetStatusData> Statuses = default, int? StatusCount = null, bool StatusesTruncated = false);
 public sealed record AddonRow(string Name, ushort AddonId, bool Visible, bool Ready, int? Values, int? Nodes);
-public sealed record ValueRow(int Index, string Type, string Value, bool Decoded);
+public sealed record ValueRow(int Index, string Type, string Value, bool Decoded, string? Label = null);
 public sealed record NodeRow(int ListIndex, uint NodeId, ushort Type, int Depth, bool Visible, float X, float Y, ushort Width, ushort Height, bool DepthLimited);
 public sealed record FieldRow(string Field, string Value, bool TextShortened = false,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? OriginalTextLength = null);
@@ -182,7 +182,7 @@ public static class Payloads
             StatusesTruncated = p.Target.StatusesTruncated || (p.Target.StatusCount is { } count && count > 80),
         } },
         AddonsPayload p => p with { Rows = p.Rows.Take(256).Select(r => r with { Name = ReportText.Clean(r.Name) }).ToImmutableArray(), GameBuild = NativeCompatibility.SafeBuild(p.GameBuild), Profile = p.Profile == "ExperimentalMatched" ? p.Profile : "Unsupported" },
-        ValuesPayload p => p with { Rows = p.Rows.Take(128).Select(r => r with { Type = ReportText.Clean(r.Type), Value = ReportText.Clean(r.Value) }).ToImmutableArray(), Addon = ReportText.Clean(p.Addon), GameBuild = NativeCompatibility.SafeBuild(p.GameBuild) },
+        ValuesPayload p => p with { Rows = p.Rows.Take(128).Select(r => r with { Type = ReportText.Clean(r.Type), Value = ReportText.Clean(r.Value), Label = r.Label == null ? null : ReportText.Clean(r.Label) }).ToImmutableArray(), Addon = ReportText.Clean(p.Addon), GameBuild = NativeCompatibility.SafeBuild(p.GameBuild) },
         NodesPayload p => p with { Rows = p.Rows.Where(r => float.IsFinite(r.X) && float.IsFinite(r.Y)).Take(256).ToImmutableArray(), Addon = ReportText.Clean(p.Addon), GameBuild = NativeCompatibility.SafeBuild(p.GameBuild) },
         MenuPayload p => p with { Rows = p.Rows.Take(64).Select(r => r with { Type = ReportText.Clean(r.Type), Value = ReportText.Clean(r.Value) }).ToImmutableArray(), GameBuild = NativeCompatibility.SafeBuild(p.GameBuild) },
         SheetPayload p => p with { Fields = p.Fields.Take(64).Select(FieldText.Sanitize).ToImmutableArray(), Language = ReportText.Clean(p.Language), GameBuild = NativeCompatibility.SafeBuild(p.GameBuild) },

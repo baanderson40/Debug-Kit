@@ -29,6 +29,8 @@ internal sealed class MainWindow : Window, IDisposable
     private bool disposed, detailsExpanded;
     private ToolOptions toolOptions = new();
     private readonly Dictionary<Inspector, ToolOptions> forms = new();
+    private readonly Dictionary<Inspector, bool> addonManualEntry = new();
+    private readonly Dictionary<Inspector, string> manualAddonNames = new();
     private string sheetRow = "1", itemFilter = "", nodeFilter = "";
     private string domainId = "", stateFilter = "", scheduleEpoch = "", remainingSeconds = "";
     private bool toolInputValid = true;
@@ -147,7 +149,7 @@ internal sealed class MainWindow : Window, IDisposable
         if (!view.CommandAvailable)
             ImGui.TextWrapped("/debugkit is already owned by another handler. Open this window through Dalamud's plugin UI.");
         ImGui.Separator();
-        DrawInputs();
+        DrawInputs(view);
         ImGui.Separator();
         ImGui.TextWrapped($"Queued {view.Pending}/16 | active {(view.ActiveRequest != null ? "yes" : "no")} | examined {view.Examined} | evicted {view.Evicted} | dropped {view.Dropped} | rejected {view.Rejected}");
         ImGui.TextWrapped(status);
@@ -195,7 +197,7 @@ internal sealed class MainWindow : Window, IDisposable
         finally { ImGui.EndChild(); }
     }
 
-    private void DrawInputs()
+    private void DrawInputs(EngineView view)
     {
         if (selected == Inspector.NearbyObjects)
         {
@@ -207,7 +209,7 @@ internal sealed class MainWindow : Window, IDisposable
             ImGui.TextWrapped("Maximum 128 rows / 1,024 table entries. Positions use capture-start origin. In-game display names are included for all kinds.");
         }
         toolInputValid = true;
-        if (selected is not (Inspector.Context or Inspector.NearbyObjects)) DrawToolInputs();
+        if (selected is not (Inspector.Context or Inspector.NearbyObjects)) DrawToolInputs(view);
         var valid = TryOptions(out var options) && toolInputValid;
         if (selected is Inspector.MovementSpeedTracker or Inspector.TargetDistanceTracker or Inspector.EntityNameWatch)
         {
@@ -306,6 +308,11 @@ internal sealed class MainWindow : Window, IDisposable
     private void Navigate(Inspector inspector, ToolOptions? prefill = null)
     {
         forms[selected] = toolOptions with { ExperimentalNative = false, NetworkConsent = false };
+        if (prefill != null && inspector is (Inspector.AddonValues or Inspector.AddonNodes))
+        {
+            addonManualEntry.Remove(inspector);
+            manualAddonNames.Remove(inspector);
+        }
         selected = inspector;
         toolOptions = prefill ?? forms.GetValueOrDefault(inspector) ?? new(Addon: inspector == Inspector.AddonList ? "" : "ContextMenu",
             Sheet: inspector == Inspector.FamiliarData ? SheetKind.XBMPet : SheetKind.Item, ItemId: inspector == Inspector.Currency ? 1u : null);
@@ -319,7 +326,7 @@ internal sealed class MainWindow : Window, IDisposable
         selectedResult = null; preview = null; previewText = "";
     }
 
-    private void DrawToolInputs()
+    private void DrawToolInputs(EngineView view)
     {
         if (selected == Inspector.AddonCallbacks)
         {
@@ -376,11 +383,7 @@ internal sealed class MainWindow : Window, IDisposable
             toolOptions = toolOptions with { Addon = filter };
         }
         if (selected is Inspector.AddonValues or Inspector.AddonNodes)
-        {
-            var addon = toolOptions.Addon;
-            ImGui.InputText("Addon name", ref addon, 64);
-            toolOptions = toolOptions with { Addon = addon };
-        }
+            DrawAddonSelector(view);
         if (selected is Inspector.AddonValues or Inspector.AddonNodes or Inspector.ContextMenu)
         {
             var instance = toolOptions.Instance;
@@ -392,7 +395,7 @@ internal sealed class MainWindow : Window, IDisposable
             var start = toolOptions.Start; var count = toolOptions.Count;
             ImGui.InputInt("Start value index", ref start); ImGui.InputInt("Count (1–128)", ref count);
             toolOptions = toolOptions with { Start = start, Count = count };
-            ImGui.TextWrapped("Bool and reviewed ContextMenu count fields decoded. Unclassified numbers/strings/pointers omitted to avoid leaking identity/address data.");
+            ImGui.TextWrapped("Booleans, reviewed ContextMenu count, and SelectYesno prompt/button strings at slots 0–3 are decoded. Other unclassified numbers/strings/pointers remain omitted. SelectYesno text is dynamic; review before sharing.");
         }
         if (selected == Inspector.AddonNodes)
         {
@@ -506,6 +509,54 @@ internal sealed class MainWindow : Window, IDisposable
         }
         toolInputValid &= toolOptions.IsValid(selected);
     }
+
+    private void DrawAddonSelector(EngineView view)
+    {
+        var names = view.Results
+            .Where(r => r.Inspector == Inspector.AddonList && r.Outcome == Outcome.Success && r.Payload is AddonsPayload)
+            .LastOrDefault()?.Payload is AddonsPayload payload
+            ? payload.Rows.Select(r => r.Name)
+                .Where(IsAddonName)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Take(256)
+                .ToArray()
+            : [];
+
+        var match = Array.FindIndex(names, n => string.Equals(n, toolOptions.Addon, StringComparison.OrdinalIgnoreCase));
+        var manual = addonManualEntry.TryGetValue(selected, out var rememberedManual) ? rememberedManual : match < 0;
+        if (!manual && match < 0) manual = true; // Retain a previous selection if a newer list no longer contains it.
+        var choices = names.Append("Manual entry").ToArray();
+        var choice = manual ? names.Length : Math.Max(0, match);
+        if (ImGui.Combo("Addon", ref choice, choices, choices.Length))
+        {
+            manual = choice == names.Length;
+            addonManualEntry[selected] = manual;
+            if (manual)
+            {
+                if (!manualAddonNames.ContainsKey(selected))
+                    manualAddonNames[selected] = match < 0 ? toolOptions.Addon : "";
+            }
+            else
+            {
+                toolOptions = toolOptions with { Addon = names[choice] };
+            }
+        }
+
+        if (manual)
+        {
+            var addon = manualAddonNames.GetValueOrDefault(selected, toolOptions.Addon);
+            ImGui.InputText("Manual addon name", ref addon, 64);
+            manualAddonNames[selected] = addon;
+            toolOptions = toolOptions with { Addon = addon };
+        }
+        else
+        {
+            toolOptions = toolOptions with { Addon = names[choice] };
+        }
+    }
+
+    private static bool IsAddonName(string? name) => name is { Length: >= 1 and <= 64 } &&
+        name.All(c => char.IsAsciiLetterOrDigit(c) || c == '_');
 
     private void DrawDomainInputs()
     {
@@ -674,7 +725,9 @@ internal sealed class MainWindow : Window, IDisposable
             ImGui.SetClipboardText(resultText);
             status = result.Payload is CallbackPayload
                 ? "Copied result; unredacted numeric callback arguments may contain IDs. Review before sharing."
-                : "Copied result; display names and positions remain included.";
+                : result.Payload is ValuesPayload { Addon: "SelectYesno" }
+                    ? "Copied result; SelectYesno prompt/button text is dynamic. Review before sharing."
+                    : "Copied result; display names and positions remain included.";
         }
         ImGui.SameLine();
         ImGui.BeginDisabled(exportTask != null);
@@ -723,7 +776,7 @@ internal sealed class MainWindow : Window, IDisposable
     private void DrawPayloadTable(ToolPayload? payload)
     {
         if (payload is CallbackPayload callbacks) { DrawCallbackTable(callbacks); return; }
-        if (payload is not (AddonsPayload or InventoryPayload or SheetPayload or DomainPayload or DiagnosticFieldsPayload or PluginInventoryPayload or LookupPayload or ObservationPayload) || !ImGui.CollapsingHeader("Structured rows")) return;
+        if (payload is not (AddonsPayload or ValuesPayload or InventoryPayload or SheetPayload or DomainPayload or DiagnosticFieldsPayload or PluginInventoryPayload or LookupPayload or ObservationPayload) || !ImGui.CollapsingHeader("Structured rows")) return;
         if (payload is SheetPayload or DomainPayload) ImGui.TextDisabled($"Text-shortened fields: {Payloads.ShortenedFields(payload)} (hover marked values for details)");
         if (!ImGui.BeginTable("payload-rows", 3, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY, new Vector2(0, 180))) return;
         try
@@ -732,6 +785,14 @@ internal sealed class MainWindow : Window, IDisposable
             ImGui.TableHeadersRow();
             switch (payload)
             {
+                case ValuesPayload p:
+                    foreach (var row in p.Rows)
+                    {
+                        ImGui.TableNextRow(); ImGui.TableNextColumn(); ImGui.TextUnformatted($"[{row.Index}] {row.Label ?? "Value"}");
+                        ImGui.TableNextColumn(); ImGui.TextUnformatted(row.Value);
+                        ImGui.TableNextColumn(); ImGui.TextUnformatted($"{row.Type}; decoded {row.Decoded}");
+                    }
+                    break;
                 case AddonsPayload p:
                     foreach (var row in p.Rows)
                     {

@@ -9,6 +9,7 @@ internal static class Phase2Tests
     public static IEnumerable<(string Name, Action Run)> All => new (string, Action)[]
     {
         ("phase2 descriptors use explicit stable IDs", CatalogIds),
+        ("addon value decoder allowlists exact reviewed slots", AddonValuePolicyTest),
         ("comparison labels identify captured inputs and unique requests", SelectionLabels),
         ("unsupported target fields say unavailable and preserve zero values", TargetUnavailableFields),
         ("profiling defaults off and bounds warmed samples", ProfilingBounds),
@@ -88,6 +89,16 @@ internal static class Phase2Tests
         foreach (var descriptor in Catalog.All.Reverse()) Equal(descriptor, Catalog.Get(descriptor.Inspector));
         Equal("objects.target", Catalog.Get(Inspector.Target).Id); Equal(2, Catalog.Get(Inspector.Target).Version);
         Equal("results.compare", Catalog.Get(Inspector.Compare).Id);
+    }
+    private static void AddonValuePolicyTest()
+    {
+        Check(AddonValuePolicy.IsReviewedString("SelectYesno", 0));
+        Check(AddonValuePolicy.IsReviewedString("SelectYesno", 3));
+        Check(!AddonValuePolicy.IsReviewedString("SelectYesno", 4));
+        Check(!AddonValuePolicy.IsReviewedString("SelectString", 0));
+        Equal("Prompt text", AddonValuePolicy.FieldLabel("SelectYesno", 0));
+        Equal("Button 3 text", AddonValuePolicy.FieldLabel("SelectYesno", 3));
+        Equal(null, AddonValuePolicy.FieldLabel("SelectYesno", 4));
     }
     private static void SelectionLabels()
     {
@@ -397,7 +408,8 @@ internal static class Phase2Tests
     private static void NativeProfile()
     {
         Check(NativeCompatibility.Matches(NativeCompatibility.GameBuild, NativeCompatibility.DalamudVersion, NativeCompatibility.StructsHash));
-        Check(!NativeCompatibility.Matches("2026.11.01.0000.0000", NativeCompatibility.DalamudVersion, NativeCompatibility.StructsHash));
+        Check(!NativeCompatibility.Matches("2026.10.16.0000.0000", NativeCompatibility.DalamudVersion, NativeCompatibility.StructsHash));
+        Check(!NativeCompatibility.Matches(NativeCompatibility.GameBuild, "15.0.3.9", NativeCompatibility.StructsHash));
         Check(!NativeCompatibility.Matches(NativeCompatibility.GameBuild, "16.0.0.0", NativeCompatibility.StructsHash));
         Check(!NativeCompatibility.Matches(NativeCompatibility.GameBuild, NativeCompatibility.DalamudVersion, "wrong hash"));
         Check(!NativeCompatibility.Matches(null, null, null));

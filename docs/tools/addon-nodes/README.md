@@ -8,14 +8,14 @@ Inspect bounded root ULD node-list geometry for one addon instance.
 
 ## Inputs
 
-- **Addon name**.
+- **Addon:** select a name from the latest successful Addon List capture, or choose **Manual entry**.
 - **Instance index:** 1–8.
 - **Max parent depth:** 1–8.
 - **Node ID:** optional nonzero numeric filter.
 
 ## Use
 
-Enter the addon and filters, then press **Capture**. Use Addon List to identify loaded addon names.
+Select a captured addon (or manually enter its name) and filters, then press **Capture**. Use Addon List to identify loaded addon names.
 
 ## Limits
 

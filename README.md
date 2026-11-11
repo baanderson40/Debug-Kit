@@ -23,7 +23,7 @@ Nearby Objects includes in-game display names for **all object kinds**, includin
 
 Chat, pointer-typed arguments/address fields, arbitrary exception payloads, and filesystem paths are not captured. Character/object/owner IDs remain omitted by other inspectors. **Callback logging is the exception:** unredacted integer arguments may contain those or other IDs, included in display/copy/export; the UI warns before capture. This does not authorize new identity API reads. Character Content ID API is still read transiently only to detect context replacement; that API value never enters results or logs. Player/unknown-category base IDs remain omitted.
 
-**Names, positions, territory and raw numeric callback arguments (possibly IDs) remain in reports. Review before sharing.** Export filtering is not anonymity or name/ID redaction. Game-build provenance uses the bounded `ffxivgame.ver` file beside the running executable (an installation stamp, not independent proof of the running binary). Unavailable provenance stays unavailable; plugin/Dalamud/FFXIVClientStructs version and hash metadata are included.
+**Names, positions, territory, decoded SelectYesno prompt/button text, and raw numeric callback arguments (possibly IDs) remain in reports. Review before sharing.** Export filtering is not anonymity or name/ID redaction. Game-build provenance uses the bounded `ffxivgame.ver` file beside the running executable (an installation stamp, not independent proof of the running binary). Unavailable provenance stays unavailable; plugin/Dalamud/FFXIVClientStructs version and hash metadata are included.
 
 Reports go only to Debug Kit's Dalamud configuration directory under `reports/`. Files are uniquely named, never overwritten, and never uploaded. Preview and exported content are the same frozen bytes. A stale-context preview remains a historical report, not a fresh capture.
 
@@ -45,7 +45,7 @@ Reports go only to Debug Kit's Dalamud configuration directory under `reports/`.
 | --- | --- |
 | Selected Target | Current selected object, name/kind/base ID, position/distance, targetability, rotation/hitbox, supported HP/job/level, and up to 80 status IDs/localized names/reported remaining times. Status reads distinguish empty, unsupported, and failed; source-object IDs excluded. No target is `NoTarget`, not an empty success. |
 | Addon List | Loaded/visible/focused scope, optional addon-name filter. Up to 256 rows, 32 examined entries/step. Native addon ID is not the `GetAddonByName` instance index. Structured-row shortcuts navigate to Values/Nodes but do not capture. |
-| Addon Values | Addon name, instance index, start/count up to 128 values. Types reported; booleans and reviewed ContextMenu count decoded. **Unclassified numbers/strings/pointers are deliberately omitted**, not blindly dumped. |
+| Addon Values | Addon name, instance index, start/count up to 128 values. Types reported; booleans, reviewed ContextMenu count, and `SelectYesno` prompt/button strings at slots 0–3 decoded. Dynamic text is included in reports; review before sharing. **Other unclassified numbers/strings/pointers are omitted.** |
 | Addon Nodes | Addon/instance, optional node ID, parent depth 1–8. One bounded step, max 256 root ULD list entries, cycle/depth/allocation checks. Component internals/arbitrary node text omitted. Partial output is explicit. |
 | Open Context Menu | An already-open ContextMenu, max 64 entry labels. Never opens/clicks the menu. Enabled state and action mapping remain explicitly unavailable/unresolved. No permanent capture-next-menu observer. |
 | Sheet Row | One row from Item, Action, Mount, TerritoryType, BNpcName, ENpcResident or EObj; optional language. Explicit field readers and actual language provenance; references shown as IDs, never automatically followed. EObj exposes data/pop type, not the distinct EObjName sheet. |
@@ -60,7 +60,7 @@ Addon and inventory tools are **not live-certified by the coding agent**. User-p
 
 - Installation stamp `2026.10.16.0000.0000`.
 - Dalamud `15.0.3.9`.
-- FFXIVClientStructs SHA-256 `f5a2c68ccecd3e199bda572050e98902b2e7594066c95dc7826c2d4297cd0564`.
+- FFXIVClientStructs SHA-256 `28488f18ad05fdcd12373a83756eab275c291b09c6af061ef7f846aa06a36e29`.
 
 Missing/mismatched evidence disables native reads with `UnsupportedBuild`; there is no config bypass. Matching only permits explicit experimental captures—it is not a native-memory safety certification. Disabling the session checkbox blocks new native captures with `NativeOptInRequired`; use Cancel to stop already-queued work. Game Context, Nearby Objects, Selected Target and Sheet Row do not require native authorization. Never change the profile simply to silence a mismatch; re-review and validate layouts first.
 

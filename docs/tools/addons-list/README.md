@@ -13,7 +13,7 @@ Show bounded metadata for loaded UI addons: name, native addon ID, visibility/re
 
 ## Use
 
-Choose a scope and optional filter, then press **Capture**. Select a row to navigate to related Values or Nodes tools; navigation does not capture automatically.
+Choose a scope and optional filter, then press **Capture**. Select a row to navigate to related Values or Nodes tools; navigation does not capture automatically. Captured names also populate the Addon selector in both tools. Choose **Manual entry** to type a name directly.
 
 ## Limits
 

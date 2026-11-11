@@ -18,9 +18,9 @@ Version 0.2.0 adds eight tools to the two existing inspectors. All implementatio
 
 ## Compatibility evidence and limitations
 
-Native reads require installation stamp `2026.10.16.0000.0000`, Dalamud `15.0.3.9`, and FFXIVClientStructs SHA-256 `f5a2c68ccecd3e199bda572050e98902b2e7594066c95dc7826c2d4297cd0564`.
+Native reads require installation stamp `2026.11.03.0000.0000`, Dalamud `15.0.4.0`, and FFXIVClientStructs SHA-256 `28488f18ad05fdcd12373a83756eab275c291b09c6af061ef7f846aa06a36e29` (FFXIVClientStructs `7.57.0.9480`).
 
-The installed version file and development assembly hash were inspected locally during implementation. The stamp is read from the fixed `ffxivgame.ver` file beside the running executable, using bounded input; paths are never exported. It is installation evidence, **not independent proof of running code/layout correctness**. Missing/read-failed/mismatched evidence yields `UnsupportedBuild`, with no bypass.
+The installed game version file and current development assembly versions/hash were inspected locally on 2026-11-11. The stamp is read from the fixed `ffxivgame.ver` file beside the running executable, using bounded input; paths are never exported. It is installation evidence, **not independent proof of running code/layout correctness**. Missing/read-failed/mismatched evidence yields `UnsupportedBuild`, with no bypass.
 
 Matching is deliberately labeled **ExperimentalMatched**. Every native capture additionally checks authorization frozen when queued from the session checkbox (default enabled per user request). Disabling the checkbox blocks new native requests, not requests already authorized; Cancel stops existing Debug Kit work. No in-game safety/performance certification is claimed. A changed profile requires code/layout review and live testing, not a looser match or manual checkbox override.
 
@@ -38,7 +38,7 @@ Loaded/visible/focused unit lists, optional name filter, maximum 256 list entrie
 
 ### Addon Values
 
-Validated internal addon name, instance 1–8, bounded start/count within the actual value array. At most 128 values in one bounded capture. Reports types and whether fields were decoded. Booleans and ContextMenu index-0 count (UInt <=64) are decoded. **Other scalar/string/pointer values are omitted**, not treated as safe merely because numeric. This is a useful type/range inspector, not an arbitrary value dump.
+Validated internal addon name, instance 1–8, bounded start/count within the actual value array. At most 128 values in one bounded capture. Reports types and whether fields were decoded. Booleans, ContextMenu index-0 count (UInt <=64), and `SelectYesno` prompt/button strings (slots 0–3 only) are decoded. The prompt/buttons are dynamic UI text and remain in reports; review before sharing. **Other scalar/string/pointer values are omitted**, not treated as safe merely because numeric. This is an allowlisted inspector, not an arbitrary value dump.
 
 ### Addon Nodes
 

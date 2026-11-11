@@ -98,10 +98,10 @@ if 'ImGui.InputTextWithHint("##find-tool", "Find tool", ref search, 80);' not in
     errors.append("Tool search must remain in navigation")
 if 'BeginChild("navigation-details-footer"' not in navigation or 'ImGui.CollapsingHeader("Debug Kit details")' not in navigation:
     errors.append("Plugin details must remain in the navigation footer")
-tool = window.partition("private void DrawTool(")[2].partition("private void DrawInputs()")[0]
+tool = window.partition("private void DrawTool(")[2].partition("private void DrawInputs(")[0]
 if '"Debug Kit details"' in tool:
     errors.append("Plugin details must not be repeated inside tools")
-inputs = window.partition("private void DrawInputs()")[2].partition("private bool TryOptions(")[0]
+inputs = window.partition("private void DrawInputs(")[2].partition("private bool TryOptions(")[0]
 if '"Capture both safe checks"' in window or "engine.Enqueue(" in inputs:
     errors.append("Tools must not expose multi-tool batch captures")
 if "Queue(selected, options)" not in inputs or inputs.count("ImGui.SameLine();") < 2:

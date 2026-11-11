@@ -144,7 +144,8 @@ public static class ReportCodec
                 break;
             case ValuesPayload p:
                 text.AppendLine($"{p.Addon} | instance index {p.Instance} | UI lifetime epoch {p.Lifetime} | game build {p.GameBuild}");
-                foreach (var row in p.Rows) text.AppendLine($"[{row.Index}] {row.Type}: {row.Value} | decoded {row.Decoded}");
+                foreach (var row in p.Rows) text.AppendLine($"[{row.Index}] {row.Label ?? row.Type}: {row.Value} | type {row.Type} | decoded {row.Decoded}");
+                if (p.Addon == "SelectYesno") text.AppendLine("SelectYesno prompt and button text are dynamic UI text; review before sharing. Only bounded, reviewed string slots 0–3 are decoded.");
                 break;
             case NodesPayload p:
                 text.AppendLine($"{p.Addon} | instance index {p.Instance} | UI lifetime epoch {p.Lifetime} | game build {p.GameBuild}");

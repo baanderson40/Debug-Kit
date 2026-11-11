@@ -116,10 +116,17 @@ internal sealed unsafe class NativeReader : IDisposable
             var type = ReportText.Clean(Enum.GetName(value.Type) ?? "Unknown");
             var decoded = value.Type == AtkValueType.Bool;
             var text = decoded ? value.Bool.ToString() : "omitted (unclassified field/type; no pointer dereference)";
+            var label = AddonValuePolicy.FieldLabel(options.Addon, index);
+            if (AddonValuePolicy.IsReviewedString(options.Addon, index) && value.Type == AtkValueType.String)
+            {
+                var stringValue = ReadString(value.String.Value);
+                text = stringValue ?? "unavailable (malformed or unsupported bounded SeString)";
+                decoded = stringValue != null;
+            }
             // Reviewed ContextMenu count is a small public UI count, not an identity/address.
             if (options.Addon == "ContextMenu" && index == 0 && value.Type == AtkValueType.UInt && value.UInt <= 64)
             { text = value.UInt.ToString(CultureInfo.InvariantCulture); decoded = true; }
-            rows.Add(new(index, type, text, decoded));
+            rows.Add(new(index, type, text, decoded, label));
         }
         var partial = rows.Count < options.Count;
         return new(new ValuesPayload(options.Addon, options.Instance, stamp, rows.ToImmutable(), compatibility.GameBuild),
